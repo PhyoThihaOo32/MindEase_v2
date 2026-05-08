@@ -1,45 +1,41 @@
-#ifndef RECOMMENDATIONS_H
+#ifndef RECOMMENDATIONS_H // Prevents multiple inclusion of this header file
 #define RECOMMENDATIONS_H
 
-#include "core/screen.h"
-#include <QStackedWidget>
-#include <QLineEdit>
-#include <QLabel>
-#include <QVector>
+#include "core/screen.h" // Base Screen class
+#include <QStackedWidget> // Widget stack for page navigation
+#include <QLineEdit> // Search input widget
+#include <QLabel> // QLabel UI element
+#include <QVector> // Dynamic array container
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Recommendations — BMCC Resources screen
 //
-// Inherits Screen and provides a concrete implementation of the abstract
-// interface. Demonstrates:
-//   • Inheritance   — extends the custom Screen base class (not QWidget directly)
-//   • Polymorphism  — overrides screenId() and onActivated() from Screen
+// Demonstrates:
+// Inheritance — Extends the custom Screen base class
+// Polymorphism — Overrides virtual methods from Screen
 // ─────────────────────────────────────────────────────────────────────────────
 
-class Recommendations : public Screen {
-    Q_OBJECT
+class Recommendations : public Screen { // Recommendations screen inherits from Screen
+    Q_OBJECT // Enables Qt signals and slots system
 
 public:
-    explicit Recommendations(QWidget *parent = nullptr);
+    explicit Recommendations(QWidget *parent = nullptr); // Constructor
 
-    // ── Implement pure virtual (required by Screen) ───────────────────────────
-    QString screenId() const override { return "resources"; }
+    QString screenId() const override { return "resources"; } // Returns unique screen ID
 
-    // ── Override activation hook ──────────────────────────────────────────────
-    // Called by MainWindow each time the user navigates to this screen.
-    void onActivated() override;
+    void onActivated() override; // Called when screen becomes active
 
 private:
-    void applyTopicSearch(const QString &query);
-    void openBestTopicMatch();
-    void showTopic(int index);
-    void showHome();
+    void applyTopicSearch(const QString &query); // Filters topics using search input
+    void openBestTopicMatch(); // Opens highest ranked search result
+    void showTopic(int index); // Displays selected topic page
+    void showHome(); // Returns to home page
 
-    QStackedWidget *m_stack;
-    QLineEdit      *m_searchInput;
-    QLabel         *m_searchStatus;
-    QVector<QWidget*> m_topicCards;
-    QVector<QLabel*>  m_topicSubtitleLabels;
+    QStackedWidget *m_stack; // Handles multi-page navigation
+    QLineEdit *m_searchInput; // Search bar input
+    QLabel *m_searchStatus; // Displays search status or results
+    QVector<QWidget*> m_topicCards; // Stores topic card widgets
+    QVector<QLabel*> m_topicSubtitleLabels; // Stores topic subtitle labels
 };
 
 #endif // RECOMMENDATIONS_H

@@ -1,61 +1,41 @@
-#ifndef SCREEN_H
+#ifndef SCREEN_H // Prevents multiple inclusion of this header file
 #define SCREEN_H
 
-#include <QWidget>
-#include <QVBoxLayout>
+#include <QWidget> // Base Qt widget class
+#include <QVBoxLayout> // Vertical layout manager
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Screen — abstract base class for all application screens
 //
 // OOP concepts demonstrated
 // ─────────────────────────────────────────────────────────────────────────────
-//   Abstraction   — Screen defines a common interface for every view in the
-//                   application. It cannot be instantiated on its own because
-//                   screenId() is a pure virtual function. Callers work with
-//                   Screen* and never need to know the concrete type.
-//
-//   Inheritance   — Recommendations, Toolkit, and Journal all inherit from
-//                   Screen, gaining the title accessor and buildHeader() helper
-//                   without duplicating code.
-//
-//   Polymorphism  — onActivated() is a virtual method. MainWindow stores a
-//                   QVector<Screen*> and calls screens[i]->onActivated() when
-//                   switching screens. Each concrete class decides at runtime
-//                   what "activated" means for that screen.
-//
-//   Encapsulation — m_title is private; external code can only read it through
-//                   the public title() const accessor.
+// Abstraction — Defines a common interface for all screens
+// Inheritance — Other screens inherit shared functionality from Screen
+// Polymorphism — Virtual methods allow runtime behavior changes
+// Encapsulation — Private members protect internal data
 // ─────────────────────────────────────────────────────────────────────────────
 
-class Screen : public QWidget {
-    Q_OBJECT
+class Screen : public QWidget { // Base class for all UI screens
+    Q_OBJECT // Enables Qt signals, slots, and meta-object features
 
 public:
-    explicit Screen(const QString &title, QWidget *parent = nullptr);
-    virtual ~Screen() = default;
+    explicit Screen(const QString &title, QWidget *parent = nullptr); // Constructor
+    virtual ~Screen() = default; // Virtual destructor for safe inheritance cleanup
 
-    // Returns the screen's human-readable display title.
-    QString title() const;
+    QString title() const; // Returns screen title text
 
-    // ── Pure virtual — makes Screen abstract ─────────────────────────────────
-    // Every concrete screen must supply a unique lowercase identifier string.
-    // Declaring this as = 0 means Screen cannot be instantiated directly.
-    virtual QString screenId() const = 0;
+    // Pure virtual function — makes Screen an abstract class
+    virtual QString screenId() const = 0; // Every screen must provide unique ID
 
-    // ── Virtual activation hook ───────────────────────────────────────────────
-    // Called by MainWindow::switchScreen() each time this screen becomes visible.
-    // The default implementation does nothing; derived classes may override to
-    // refresh data, restart timers, or reset state.
-    virtual void onActivated() {}
+    // Virtual activation hook called when screen becomes visible
+    virtual void onActivated() {} // Default empty implementation
 
 protected:
-    // Shared utility: appends a styled title QLabel followed by a horizontal
-    // rule to *root*. Derived classes call this at the top of their constructor
-    // to produce a consistent screen header without code duplication.
+    // Shared helper for building consistent screen headers
     void buildHeader(QVBoxLayout *root);
 
 private:
-    QString m_title;     // encapsulated; not directly accessible to subclasses
+    QString m_title; // Stores screen title (encapsulated private member)
 };
 
 #endif // SCREEN_H

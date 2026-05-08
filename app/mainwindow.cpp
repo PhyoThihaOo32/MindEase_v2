@@ -1,159 +1,166 @@
-#include "app/mainwindow.h"
-#include "core/lucideicons.h"
-#include "core/screen.h"
-#include "screens/home.h"
-#include "screens/recommendations.h"
-#include "screens/toolkit.h"
-#include "screens/journal.h"
+#include "app/mainwindow.h" // Main window class
+#include "core/lucideicons.h" // Lucide icon helper functions
+#include "core/screen.h" // Base abstract screen class
+#include "screens/home.h" // Home screen
+#include "screens/recommendations.h" // BMCC resources screen
+#include "screens/toolkit.h" // Mental health toolkit screen
+#include "screens/journal.h" // Journal screen
 
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QPushButton>
-#include <QLabel>
-#include <QFrame>
+#include <QHBoxLayout> // Horizontal layouts
+#include <QVBoxLayout> // Vertical layouts
+#include <QPushButton> // Push button widgets
+#include <QLabel> // Text labels
+#include <QFrame> // Frame containers and separators
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    setWindowTitle("MindEase — BMCC Wellness Companion");
-    setMinimumSize(1120, 760);
-    resize(1500, 960);
-    setWindowState(Qt::WindowMaximized);
+    setWindowTitle("MindEase — BMCC Wellness Companion"); // Sets window title
+    setMinimumSize(1120, 760); // Minimum allowed window size
+    resize(1500, 960); // Default starting size
+    setWindowState(Qt::WindowMaximized); // Opens window maximized
 
-    applyStyle();
+    applyStyle(); // Applies global stylesheet/theme
 
-    centralWidget = new QWidget(this);
-    centralWidget->setObjectName("appShell");
-    setCentralWidget(centralWidget);
+    centralWidget = new QWidget(this); // Main root widget
+    centralWidget->setObjectName("appShell"); // Object name for styling
+    setCentralWidget(centralWidget); // Sets root widget into main window
 
-    mainLayout = new QVBoxLayout(centralWidget);
-    mainLayout->setContentsMargins(24, 20, 24, 20);
-    mainLayout->setSpacing(18);
+    mainLayout = new QVBoxLayout(centralWidget); // Main vertical layout
+    mainLayout->setContentsMargins(24, 20, 24, 20); // Outer spacing
+    mainLayout->setSpacing(18); // Space between widgets
 
     // Build screens (polymorphic — stored as Screen*)
-    Home *home = new Home(this);
-    screens.append(home);
-    screens.append(new Recommendations(this));
-    screens.append(new Toolkit(this));
-    screens.append(new Journal(this));
+    Home *home = new Home(this); // Creates Home screen
+    screens.append(home); // Adds Home screen to screen list
+    screens.append(new Recommendations(this)); // Adds BMCC resources screen
+    screens.append(new Toolkit(this)); // Adds toolkit screen
+    screens.append(new Journal(this)); // Adds journal screen
 
     // Stack
-    stack = new QStackedWidget(this);
-    stack->setObjectName("screenStack");
+    stack = new QStackedWidget(this); // Stack container for screen switching
+    stack->setObjectName("screenStack"); // Object name for styling
+
     for (Screen *s : screens)
-        stack->addWidget(s);
+        stack->addWidget(s); // Adds each screen into stacked widget
 
-    buildNavigationBar();
+    buildNavigationBar(); // Builds top navigation bar
 
-    mainLayout->addWidget(navShell);
-    mainLayout->addWidget(stack, 1);
+    mainLayout->addWidget(navShell); // Adds navigation bar
+    mainLayout->addWidget(stack, 1); // Adds stacked screens
 
     connect(home, &Home::requestScreen, this, [this](const QString &screenId) {
         for (int i = 0; i < screens.size(); ++i) {
             if (screens[i]->screenId() == screenId) {
-                switchScreen(i);
+                switchScreen(i); // Switches to requested screen
                 return;
             }
         }
     });
 
-    switchScreen(0);
+    switchScreen(0); // Opens Home screen first
 }
 
 MainWindow::~MainWindow() {}
 
 void MainWindow::buildNavigationBar() {
-    navShell = new QWidget(this);
-    navShell->setObjectName("navShell");
+    navShell = new QWidget(this); // Navigation container
+    navShell->setObjectName("navShell"); // Object name for styling
 
-    QHBoxLayout *shellLayout = new QHBoxLayout(navShell);
-    shellLayout->setContentsMargins(10, 6, 10, 6);
-    shellLayout->setSpacing(24);
+    QHBoxLayout *shellLayout = new QHBoxLayout(navShell); // Horizontal layout
+    shellLayout->setContentsMargins(10, 6, 10, 6); // Inner margins
+    shellLayout->setSpacing(24); // Space between sections
 
-    QWidget *logo = new QWidget();
+    QWidget *logo = new QWidget(); // Logo container
     logo->setObjectName("logoBox");
-    QVBoxLayout *ll = new QVBoxLayout(logo);
+
+    QVBoxLayout *ll = new QVBoxLayout(logo); // Logo layout
     ll->setContentsMargins(0, 0, 0, 0);
     ll->setSpacing(0);
 
-    QLabel *appName = new QLabel("MindEase");
+    QLabel *appName = new QLabel("MindEase"); // App title label
     appName->setObjectName("appName");
     ll->addWidget(appName);
 
-    QWidget *navRow = new QWidget();
+    QWidget *navRow = new QWidget(); // Navigation buttons row
     navRow->setObjectName("navRow");
-    QHBoxLayout *navLayout = new QHBoxLayout(navRow);
+
+    QHBoxLayout *navLayout = new QHBoxLayout(navRow); // Navigation layout
     navLayout->setContentsMargins(0, 0, 0, 0);
     navLayout->setSpacing(24);
 
-    struct NavDef { QString label; };
+    struct NavDef { QString label; }; // Navigation item structure
+
     const QList<NavDef> navDefs = {
-        { "Home"                 },
-        { "BMCC Resources"       },
-        { "Mental Health Toolkit"},
-        { "My Journal"           },
-    };
+                                   { "Home"                 },
+                                   { "BMCC Resources"       },
+                                   { "Mental Health Toolkit"},
+                                   { "My Journal"           },
+                                   };
 
     for (int i = 0; i < navDefs.size(); i++) {
-        QPushButton *btn = new QPushButton(navDefs[i].label);
-        btn->setObjectName("navBtn");
-        btn->setCheckable(true);
-        btn->setChecked(i == 0);
-        btn->setCursor(Qt::PointingHandCursor);
-        btn->setMinimumHeight(40);
-        connect(btn, &QPushButton::clicked, this, [this, i]() { switchScreen(i); });
-        navButtons.append(btn);
-        navLayout->addWidget(btn);
-    }
-    navLayout->addStretch();
+        QPushButton *btn = new QPushButton(navDefs[i].label); // Navigation button
+        btn->setObjectName("navBtn"); // Object name for styling
+        btn->setCheckable(true); // Makes button selectable
+        btn->setChecked(i == 0); // Home button selected by default
+        btn->setCursor(Qt::PointingHandCursor); // Hand cursor on hover
+        btn->setMinimumHeight(40); // Minimum button height
 
-    shellLayout->addWidget(logo, 0, Qt::AlignLeft | Qt::AlignTop);
-    shellLayout->addSpacing(28);
-    shellLayout->addWidget(navRow, 1);
+        connect(btn, &QPushButton::clicked, this, [this, i]() {
+            switchScreen(i); // Switches screen when clicked
+        });
+
+        navButtons.append(btn); // Stores button
+        navLayout->addWidget(btn); // Adds button to layout
+    }
+
+    navLayout->addStretch(); // Pushes buttons to left side
+
+    shellLayout->addWidget(logo, 0, Qt::AlignLeft | Qt::AlignTop); // Adds logo
+    shellLayout->addSpacing(28); // Space between logo and nav
+    shellLayout->addWidget(navRow, 1); // Adds nav row
 }
 
 void MainWindow::switchScreen(int index) {
-    stack->setCurrentIndex(index);
+    stack->setCurrentIndex(index); // Displays selected screen
+
     for (int i = 0; i < navButtons.size(); i++)
-        navButtons[i]->setChecked(i == index);
+        navButtons[i]->setChecked(i == index); // Updates active nav button
 
     // Polymorphic dispatch — each Screen subclass decides what to refresh.
     if (index >= 0 && index < screens.size())
-        screens[index]->onActivated();
+        screens[index]->onActivated(); // Calls screen-specific refresh logic
 }
 
 void MainWindow::applyStyle() {
     setStyleSheet(R"(
         QMainWindow {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                                        stop:0 #f8f1df, stop:0.46 #f5eedf, stop:0.78 #edf2e6, stop:1 #e2ebde);
+            background: #f6f6f2;
         }
+
         #appShell {
-            background: qradialgradient(cx:0.88, cy:0.24, radius:1.2,
-                                        fx:0.88, fy:0.24,
-                                        stop:0 rgba(205, 229, 201, 0.86),
-                                        stop:0.26 rgba(226, 237, 220, 0.62),
-                                        stop:0.58 rgba(245, 238, 223, 0.92),
-                                        stop:1 rgba(249, 243, 229, 0.98));
+            background: #f6f6f2;
         }
 
         #navShell {
             background: transparent;
             border: none;
         }
+
         #brandRow, #navRow {
             background: transparent;
             border: none;
         }
+
         #logoBox {
             background: transparent;
             border: none;
         }
+
         #appName {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
             color: #111111;
-            letter-spacing: -0.5px;
         }
 
         #navBtn {
@@ -164,104 +171,110 @@ void MainWindow::applyStyle() {
             font-size: 15px;
             font-weight: 700;
             color: #171717;
-            border-radius: 0px;
         }
+
         #navBtn:hover {
-            color: #2f3f31;
+            color: #3f5f46;
         }
+
         #navBtn:checked {
-            background: transparent;
-            color: #111111;
-            font-weight: 800;
+            color: #2f5f3a;
+            font-weight: 700;
         }
+
         #navBtn:focus {
             background: transparent;
-            color: #111111;
+            color: #2f5f3a;
         }
 
         #screenStack {
             background: transparent;
         }
+
         QWidget#screenRoot,
         QWidget#screenSurface,
         QWidget#screenViewport {
             background: transparent;
         }
 
-        /* ── Shared screen typography ────────────────────────────────── */
         QLabel#screenTitle {
-            font-size: 34px;
+            font-size: 30px;
             font-weight: 800;
-            color: #274334;
-            letter-spacing: -0.8px;
+            color: #173c2c;
         }
+
         QLabel#sectionLabel {
             font-size: 10px;
             font-weight: 700;
-            color: #7d9476;
-            letter-spacing: 1.7px;
+            color: #5f715f;
         }
 
-        /* ── Generic buttons ─────────────────────────────────────────── */
         QPushButton#primaryBtn {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                                        stop:0 #e3efdc, stop:0.58 #d4e6cd, stop:1 #f7efdc);
-            color: #284333;
-            border: 1px solid rgba(144, 176, 134, 0.42);
-            border-radius: 16px;
-            padding: 13px 26px;
+            background: #e8f1e4;
+            color: #173c2c;
+            border: 1px solid #b8c8b5;
+            border-radius: 8px;
+            padding: 10px 20px;
             font-size: 14px;
-            font-weight: 800;
+            font-weight: 700;
         }
+
         QPushButton#primaryBtn:hover {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                                        stop:0 #eaf4e4, stop:0.54 #deecda, stop:1 #faf3e5);
+            background: #ddebd8;
         }
+
         QPushButton#primaryBtn:pressed {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                                        stop:0 #d4e3cc, stop:0.54 #cbddc5, stop:1 #ece2ca);
+            background: #d2e0cd;
         }
+
         QPushButton#primaryBtn:disabled {
             background: #d8ddd2;
             color: #92a092;
         }
 
         QPushButton#outlineBtn {
-            background: rgba(249, 244, 232, 0.86);
-            color: #365143;
-            border: 1px solid rgba(121, 152, 114, 0.34);
-            border-radius: 16px;
-            padding: 11px 20px;
+            background: #ffffff;
+            color: #173c2c;
+            border: 1px solid #c7d8c1;
+            border-radius: 8px;
+            padding: 10px 18px;
             font-size: 14px;
             font-weight: 600;
         }
+
         QPushButton#outlineBtn:hover {
-            background: rgba(241, 247, 236, 0.94);
-            border-color: rgba(110, 151, 112, 0.42);
-            color: #254133;
+            background: #f2f5ef;
         }
 
-        /* ── Scrollbars ──────────────────────────────────────────────── */
         QScrollArea {
             border: none;
             background: transparent;
         }
+
         QScrollBar:vertical {
             width: 10px;
             background: transparent;
             margin: 6px 2px 6px 0;
         }
+
         QScrollBar::handle:vertical {
-            background: rgba(136, 167, 128, 0.72);
+            background: #b8c8b5;
             border-radius: 5px;
             min-height: 30px;
         }
-        QScrollBar::handle:vertical:hover { background: rgba(109, 144, 105, 0.92); }
-        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+
+        QScrollBar::handle:vertical:hover {
+            background: #96ad91;
+        }
+
+        QScrollBar::add-line:vertical,
+        QScrollBar::sub-line:vertical {
             height: 0;
             background: transparent;
         }
-        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+
+        QScrollBar::add-page:vertical,
+        QScrollBar::sub-page:vertical {
             background: transparent;
         }
 
@@ -269,5 +282,5 @@ void MainWindow::applyStyle() {
             background: transparent;
             width: 10px;
         }
-    )");
+    )"); // Global Qt stylesheet
 }

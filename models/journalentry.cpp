@@ -4,37 +4,50 @@
 // JournalEntry implementation
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Constructors ──────────────────────────────────────────────────────────────
-
-// Default constructor — produces an invalid entry (m_dateTime is null).
+// Default constructor
+// Creates an empty invalid journal entry.
 JournalEntry::JournalEntry() {}
 
-// Value constructor — stores both required fields.
-JournalEntry::JournalEntry(const QDateTime &dt, const QString &body,
+// Main constructor
+// Stores journal timestamp, body text, and optional file path.
+JournalEntry::JournalEntry(const QDateTime &dt,
+                           const QString &body,
                            const QString &filePath)
-    : m_dateTime(dt), m_body(body), m_filePath(filePath) {}
+    : m_dateTime(dt),
+    m_body(body),
+    m_filePath(filePath) {}
 
-// ── Accessors (encapsulation) ─────────────────────────────────────────────────
-
-QDateTime JournalEntry::dateTime() const { return m_dateTime; }
-QString   JournalEntry::body()     const { return m_body;     }
-QString   JournalEntry::filePath() const { return m_filePath; }
-
-// An entry is valid only when it carries a real timestamp and non-empty text.
-bool JournalEntry::isValid() const {
-    return m_dateTime.isValid() && !m_body.trimmed().isEmpty();
+// Returns the journal entry date/time
+QDateTime JournalEntry::dateTime() const {
+    return m_dateTime;
 }
 
-// ── Operator overloads ────────────────────────────────────────────────────────
+// Returns the journal body text
+QString JournalEntry::body() const {
+    return m_body;
+}
 
-// operator< is deliberately reversed so that a NEWER entry sorts "before"
-// an older one. When QList<JournalEntry> is sorted with std::sort, the result
-// is automatically newest-first — no external comparator needed.
+// Returns saved file path
+QString JournalEntry::filePath() const {
+    return m_filePath;
+}
+
+// Checks whether the journal entry is valid
+// Entry must contain a valid timestamp and non-empty text.
+bool JournalEntry::isValid() const {
+    return m_dateTime.isValid()
+    && !m_body.trimmed().isEmpty();
+}
+
+// Operator overload for sorting
+// Reversed intentionally so newer entries appear first when sorted.
 bool JournalEntry::operator<(const JournalEntry &other) const {
     return m_dateTime > other.m_dateTime;
 }
 
-// Two entries are considered equal if they share both timestamp and body text.
+// Operator overload for equality comparison
+// Two entries are equal if both timestamp and body match.
 bool JournalEntry::operator==(const JournalEntry &other) const {
-    return m_dateTime == other.m_dateTime && m_body == other.m_body;
+    return m_dateTime == other.m_dateTime
+           && m_body == other.m_body;
 }

@@ -1,59 +1,40 @@
-#ifndef JOURNALENTRY_H
+#ifndef JOURNALENTRY_H // Prevents multiple inclusion of this header file
 #define JOURNALENTRY_H
 
-#include <QString>
-#include <QDateTime>
+#include <QString> // QString class for text handling
+#include <QDateTime> // QDateTime class for timestamps
 
 // ─────────────────────────────────────────────────────────────────────────────
 // JournalEntry — value class representing one saved wellness journal entry
 //
 // OOP concepts demonstrated
 // ─────────────────────────────────────────────────────────────────────────────
-//   Encapsulation     — all data members (m_dateTime, m_body, m_filePath) are
-//                       private. External code can only read them through the
-//                       public const accessors dateTime(), body(), filePath().
-//                       No public setters exist; an entry's content is set once
-//                       at construction and never mutated from outside the class.
-//
-//   Operator overload — operator< is overloaded so that "newer" entries compare
-//                       as "less than" older ones. This allows std::sort and
-//                       Qt's sort utilities to naturally produce a newest-first
-//                       ordering without any external comparator.
-//                       operator== tests whether two entries represent the same
-//                       timestamp and body text.
-//
-//   Simple model      — this class now represents journal data only.
-//                       All file I/O is handled by JournalStorage, which keeps
-//                       persistence logic separate from the model and UI.
+// Encapsulation — Private data accessed only through public methods
+// Operator Overloading — Custom comparison and equality operators
+// Simple Model — Stores journal data only, no file handling logic
 // ─────────────────────────────────────────────────────────────────────────────
 
 class JournalEntry {
 public:
-    // Default-constructs an *invalid* empty entry (isValid() == false).
-    JournalEntry();
+    JournalEntry(); // Default constructor creates invalid empty entry
 
-    // Constructs a valid entry from a known timestamp and body text.
-    JournalEntry(const QDateTime &dt, const QString &body,
-                 const QString &filePath = QString());
+    JournalEntry(const QDateTime &dt, const QString &body, // Constructor with timestamp and body
+                 const QString &filePath = QString()); // Optional file path
 
-    // ── Accessors (encapsulation: no public data members) ────────────────────
-    QDateTime dateTime() const;   // when the entry was written
-    QString   body()     const;   // the user's text (without the file header)
-    QString   filePath() const;   // absolute path; set after save or load
-    bool      isValid()  const;   // true iff dateTime is valid AND body non-empty
+    // Accessor methods for encapsulated private data
+    QDateTime dateTime() const; // Returns entry timestamp
+    QString body() const; // Returns journal text body
+    QString filePath() const; // Returns saved file path
+    bool isValid() const; // Returns true if entry contains valid data
 
-    // ── Operator overloads ────────────────────────────────────────────────────
-    // Returns true when *this is NEWER than other, so that std::sort produces
-    // a newest-first list. (Intentionally reverses the natural < direction.)
-    bool operator<(const JournalEntry &other) const;
-
-    // Two entries are equal iff they share the same timestamp AND body text.
-    bool operator==(const JournalEntry &other) const;
+    // Operator overloads
+    bool operator<(const JournalEntry &other) const; // Compares entries for newest-first sorting
+    bool operator==(const JournalEntry &other) const; // Checks if two entries are identical
 
 private:
-    QDateTime m_dateTime;   // timestamp of the entry
-    QString   m_body;       // the user's written text (post-header body only)
-    QString   m_filePath;   // absolute path on disk; empty until saved/loaded
+    QDateTime m_dateTime; // Stores entry date and time
+    QString m_body; // Stores journal body text
+    QString m_filePath; // Stores absolute file path on disk
 };
 
 #endif // JOURNALENTRY_H
