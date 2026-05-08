@@ -52,10 +52,10 @@ bool JournalStorage::saveEntry(const JournalEntry &entry) const {
     QTextStream out(&file);
     out << formatEntry(entry);
 
-    // Explicitly close file to flush/save content
-    file.close();    // explicit flush before returning success
-
-    return true;
+    // Verify the write succeeded before closing
+    const bool ok = (out.status() == QTextStream::Ok);
+    file.close();
+    return ok;
 }
 
 // Deletes one saved journal entry file
@@ -136,24 +136,24 @@ JournalEntry JournalStorage::loadEntry(const QString &path) const {
     // Read entire file content
     QTextStream in(&file);
     const QString contents = in.readAll();
+    const bool ok = (in.status() == QTextStream::Ok);
+    file.close();
 
-    // Close file before parsing
-    file.close();    // explicit close before parsing returns
+    if (!ok || contents.isEmpty())
+        return JournalEntry{};
 
-    // Convert file content into JournalEntry object
     return parseEntryFile(path, contents);
 }
 
 // Resolves the final directory path for journal storage
 QString JournalStorage::resolveDirectoryPath() const {
 
-    // Use custom directory path if provided
     if (!m_directoryPath.isEmpty())
         return m_directoryPath;
 
-    // Default path: user's Documents/MindEase_Journal folder
-    return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
-           + "/MindEase_Journal";
+    // Fallback to home directory if Documents location is unavailable
+    const QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    return (docs.isEmpty() ? QDir::homePath() : docs) + "/MindEase_Journal";
 }
 
 // Builds a unique file path for a new journal entry
@@ -179,25 +179,15 @@ QString JournalStorage::buildEntryPath(const QDateTime &dateTime) const {
 
 // Formats a JournalEntry into text that will be saved on disk
 QString JournalStorage::formatEntry(const JournalEntry &entry) const {
-
-    // String that will hold final file content
-    QString content;
-
-    // Text stream writes into QString
-    QTextStream out(&content);
-
-    // Header information
-    out << "=== MindEase Journal Entry ===\n";
-    out << "Date: " << entry.dateTime().toString("dddd, MMMM d, yyyy") << "\n";
-    out << "Time: " << entry.dateTime().toString("h:mm AP")            << "\n";
-
-    // Separator line between header and body
-    out << QString(kSeparatorWidth, kSeparatorChar) << "\n\n";
-
-    // Journal body text
-    out << entry.body() << "\n";
-
-    return content;
+    return QString("=== MindEase Journal Entry ===\n"
+                   "Date: %1\n"
+                   "Time: %2\n"
+                   "%3\n\n"
+                   "%4\n")
+        .arg(entry.dateTime().toString("dddd, MMMM d, yyyy"))
+        .arg(entry.dateTime().toString("h:mm AP"))
+        .arg(QString(kSeparatorWidth, kSeparatorChar))
+        .arg(entry.body());
 }
 
 // Parses saved text file content back into a JournalEntry object

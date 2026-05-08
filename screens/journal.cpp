@@ -4,6 +4,7 @@
 #include <QColor>                 // Used for handling colors in Qt
 #include <QDateTime>              // Used for current date and time operations
 #include <QFileDialog>            // Opens file save/open dialog windows
+#include <QFileInfo>              // File metadata — used to verify export output
 #include <QFrame>                 // Frame container widget for styling sections
 #include <QHBoxLayout>            // Horizontal layout manager
 #include <QMenu>                  // Dropdown/context menu support
@@ -448,12 +449,8 @@ void Journal::saveEntry() {
         return;
     }
 
-    // Start with body text
-    QString combined = bodyText;
-
-    // If title exists, place title above body with a blank line
-    if (!titleText.isEmpty())
-        combined = titleText + "\n\n" + bodyText;
+    // If title exists, place it above the body with a blank line
+    const QString combined = titleText.isEmpty() ? bodyText : titleText + "\n\n" + bodyText;
 
     // Create new journal entry with current date/time
     JournalEntry entry(QDateTime::currentDateTime(), combined);
@@ -833,7 +830,12 @@ void Journal::exportAsPdf(const JournalEntry &entry) {
     doc.setHtml(buildHtmlExport(entry));
     doc.print(&printer);
 
-    // Show success message
+    // Verify the PDF was actually written to disk
+    if (!QFileInfo::exists(path) || QFileInfo(path).size() == 0) {
+        showStatus("PDF export failed.", false);
+        return;
+    }
+
     showStatus("Exported PDF to Desktop");
 }
 
@@ -871,9 +873,14 @@ void Journal::exportAsText(const JournalEntry &entry) {
     out << QString(30, QChar(0x2500)) << "\n";
     out << "Exported from MindEase · YangonDevs · BMCC\n";
 
-    // Close file after writing
+    // Verify all writes succeeded before reporting success
+    const bool ok = (out.status() == QTextStream::Ok);
     f.close();
 
-    // Show success message
+    if (!ok) {
+        showStatus("Export failed — could not write file.", false);
+        return;
+    }
+
     showStatus("Exported plain text to Desktop");
 }

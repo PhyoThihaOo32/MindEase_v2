@@ -11,11 +11,6 @@
 
 namespace {
 
-// Checks if a token contains a keyword or emoji
-bool has(const QString &token, const QString &needle) {
-    return token.contains(needle);
-}
-
 // Draws open book icon
 void drawBook(QPainter &p) {
     p.drawRoundedRect(QRectF(4, 5, 7, 14), 1.5, 1.5);
@@ -159,13 +154,13 @@ void drawDefault(QPainter &p) {
 QString lucideIconNameForToken(const QString &token) {
     const QString t = token.trimmed().toLower();
 
-    if (t == "search" || has(token, "🔍") || has(token, "⌕")) return "search";
-    if (has(token, "📚") || has(token, "📖") || has(token, "📘")) return "book-open";
-    if (has(token, "💰")) return "dollar-sign";
-    if (has(token, "🌐")) return "globe-2";
-    if (has(token, "💬")) return "message-circle";
-    if (has(token, "🏥")) return "hospital";
-    if (has(token, "💼")) return "briefcase";
+    if (t == "search" || token.contains("🔍") || token.contains("⌕")) return "search";
+    if (token.contains("📚") || token.contains("📖") || token.contains("📘")) return "book-open";
+    if (token.contains("💰")) return "dollar-sign";
+    if (token.contains("🌐")) return "globe-2";
+    if (token.contains("💬")) return "message-circle";
+    if (token.contains("🏥")) return "hospital";
+    if (token.contains("💼")) return "briefcase";
 
     return t.isEmpty() ? "circle" : t;
 }
@@ -217,7 +212,7 @@ QIcon lucideIcon(const QString &tokenOrName, const QColor &stroke, int size) {
 void setLucideIcon(QLabel *label, const QString &tokenOrName, const QColor &stroke, int size) {
     if (!label) return;
 
-    label->setText(QString{}); // Removes existing text
+    label->clear(); // Removes existing text
     label->setPixmap(lucidePixmap(tokenOrName, stroke, size)); // Sets icon image
     label->setAlignment(Qt::AlignCenter); // Centers icon
 }

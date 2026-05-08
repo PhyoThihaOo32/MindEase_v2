@@ -228,22 +228,10 @@ static const QList<FolderDef> FOLDERS = {
 // Normalizes text for search by converting to lowercase,
 // replacing symbols with spaces, and simplifying extra spaces.
 static QString normalizedText(const QString &text) {
-    QString out;
-    out.reserve(text.size());
-
-    // Go through every character in the text
-    for (const QChar c : text.toLower()) {
-
-        // Keep letters and numbers
-        if (c.isLetterOrNumber()) {
-            out.append(c);
-
-            // Replace punctuation/symbols with spaces
-        } else {
-            out.append(' ');
-        }
+    QString out = text.toLower();
+    for (QChar &c : out) {
+        if (!c.isLetterOrNumber()) c = ' ';
     }
-
     return out.simplified();
 }
 
